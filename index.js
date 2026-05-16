@@ -371,7 +371,7 @@ async function updateExchangeRatesAuto() {
     console.log('Exchange rate update failed:', err.message);
   }
 }
-cron.schedule('0 * * *', updateExchangeRatesAuto);
+setInterval(updateExchangeRatesAuto, 60 * 60 * 1000);
 
 // ====== العمليات المالية ======
 app.post('/transactions/buy', authenticateToken, async (req, res) => {
@@ -689,9 +689,13 @@ app.post('/restore', authenticateToken, async (req, res) => {
 });
 
 // ====== Cron Job للحوالات المنتهية ======
-cron.schedule('0 * * *', async () => {
-  await pool.query("UPDATE transfers SET status = 'expired' WHERE status = 'pending' AND expires_at < NOW()");
-  console.log('Checked expired transfers');
-});
+setInterval(async () => {
+  try {
+    await pool.query("UPDATE transfers SET status = 'expired' WHERE status = 'pending' AND expires_at < NOW()");
+    console.log('Checked expired transfers -', new Date().toISOString());
+  } catch (err) {
+    console.error('Error:', err);
+  }
+}, 60 * 60 * 1000);
 
 server.listen(process.env.PORT || 3000, () => console.log('Server running on port', process.env.PORT || 3000));

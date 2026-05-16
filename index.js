@@ -371,7 +371,7 @@ async function updateExchangeRatesAuto() {
     console.log('Exchange rate update failed:', err.message);
   }
 }
-cron.schedule('0 *', updateExchangeRatesAuto);
+cron.schedule('0 * * *', updateExchangeRatesAuto);
 
 // ====== العمليات المالية ======
 app.post('/transactions/buy', authenticateToken, async (req, res) => {
@@ -689,7 +689,7 @@ app.post('/restore', authenticateToken, async (req, res) => {
 });
 
 // ====== Cron Job للحوالات المنتهية ======
-cron.schedule('0 *', async () => {
+cron.schedule('0 * * *', async () => {
   await pool.query("UPDATE transfers SET status = 'expired' WHERE status = 'pending' AND expires_at < NOW()");
   console.log('Checked expired transfers');
 });

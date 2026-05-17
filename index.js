@@ -14,12 +14,47 @@ const axios = require('axios');
 
 const app = express();
 app.use(express.json());
+
+
+
+
+
 app.use(express.static('public'));
 
 // ====== إعداد قاعدة البيانات ======
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
+});
+
+// مؤقت: احذفه بعد ما تخلص
+app.post('/setup', async (req, res) => {
+  const { sql, key } = req.body;
+  
+  // غيّر هذا المفتاح لشي صعب، لا تستخدمه كما هو
+  const SECRET_KEY = 'haroonsecret123';
+  
+  if (key !== SECRET_KEY) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  
+  if (!sql) {
+    return res.status(400).json({ error: 'SQL is required' });
+  }
+  
+  try {
+    const result = await pool.query(sql);
+    res.json({ 
+      success: true, 
+      rowCount: result.rowCount,
+      rows: result.rows 
+    });
+  } catch (err) {
+    res.status(500).json({ 
+      success: false, 
+      error: err.message 
+    });
+  }
 });
 
 const JWT_SECRET = process.env.JWT_SECRET || 'change_this_secret_key';
